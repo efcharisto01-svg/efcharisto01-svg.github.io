@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>게시판 · IAS</title>
+<link rel="icon" href="data:,">
+<script src="js/theme.js"></script>
+<link rel="stylesheet" href="css/ias.css">
+</head>
+<body>
+<main class="page">
+  <div class="tabs" id="tabs"></div>
+  <div class="hboard glass">
+    <div class="hboard-head"><span>게시판</span><span>제목</span><span>작성자</span><span>작성일</span></div>
+    <div id="rows" class="scroll"></div>
+  </div>
+</main>
+<script src="js/core.js"></script>
+<script src="js/backend-local.js"></script>
+<script src="js/backend-http.js"></script>
+<script src="js/shell.js"></script>
+<script>
+(async function () {
+  var h = IAS.h;
+  var me = await IAS.auth.require();
+  IAS.topbar.mount({ title: '게시판', me: me, back: 'home.html' });
+  var boards = await IAS.api.boards();
+  var names = {}; boards.forEach(function (b) { names[b.id] = b.name; });
+  var cur = IAS.qs('board') || '';
+
+  var tabs = document.getElementById('tabs');
+  [{ id: '', name: '전체' }].concat(boards).forEach(function (b) {
+    tabs.append(h('a', { class: 'btn ' + (cur === b.id ? 'btn-primary' : 'btn-glass'), href: 'board.html' + (b.id ? '?board=' + b.id : ''), text: b.name }));
+  });
+  tabs.append(h('span', { class: 'grow' }), h('a', { class: 'btn btn-primary', href: 'write.html' + (cur ? '?board=' + cur : ''), text: '글쓰기' }));
+
+  var rows = document.getElementById('rows');
+  var list = await IAS.api.listPosts({ board: cur || undefined });
+  if (!list.length) rows.append(h('p', { class: 'muted pad', text: '글이 없습니다.' }));
+  list.forEach(function (p) {
+    rows.append(h('a', { class: 'hboard-row', href: 'post.html?id=' + p.id },
+      h('span', { class: 'c' }, h('span', { class: 'tag' + (p.board === 'notice' ? ' pin' : ''), text: names[p.board] || p.board })),
+      h('span', { class: 't' }, p.title, p.commentCount ? h('span', { class: 'tag cnt', text: p.commentCount }) : null),
+      h('span', { class: 'a', text: p.authorName }),
+      h('span', { class: 'd muted', text: IAS.fmtDate(p.at) })));
+  });
+})();
+</script>
+</body>
+</html>

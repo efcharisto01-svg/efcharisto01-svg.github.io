@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>홈 · IAS</title>
+<link rel="icon" href="data:,">
+<script src="js/theme.js"></script>
+<link rel="stylesheet" href="css/ias.css">
+</head>
+<body>
+<main class="page">
+  <section class="widgets" id="widgets"></section>
+  <nav class="apps" id="apps" aria-label="앱"></nav>
+</main>
+<script src="js/core.js"></script>
+<script src="js/backend-local.js"></script>
+<script src="js/backend-http.js"></script>
+<script src="js/shell.js"></script>
+<script>
+(async function () {
+  var h = IAS.h;
+  var me = await IAS.auth.require();
+  IAS.topbar.mount({ title: me.name + '님, 안녕하세요', me: me });
+  var data = await IAS.api.apps();
+
+  data.apps.forEach(function (a) {
+    document.getElementById('apps').append(
+      h('a', { class: 'app glass rise', href: a.link }, h('span', { class: 'fico', style: 'background:' + a.color, text: a.icon }), a.name));
+  });
+
+  /* 위젯: 서버 데이터는 textContent 로만 그린다. 권한 id 는 앱과 같이 정한다. */
+  var defs = {
+    'board-recent': { title: '최근 게시글', app: 'board.html', load: async function () {
+      var list = await IAS.api.listPosts({ limit: 5 });
+      return list.map(function (p) { return h('li', null, h('a', { href: 'post.html?id=' + p.id, text: p.title }), h('small', { text: p.authorName + ' · ' + IAS.fmtDate(p.at) })); });
+    } },
+    'audit-recent': { title: '최근 변경 기록', app: 'log.html', load: async function () {
+      var list = await IAS.api.listAudit({ limit: 5 });
+      return list.map(function (a) { return h('li', null, h('a', { href: 'log.html', text: a.summary }), h('small', { text: a.user + ' · ' + IAS.fmtDate(a.at) })); });
+    } }
+  };
+  data.widgets.forEach(function (w) {
+    var d = defs[w.id]; if (!d) return;
+    var ul = h('ul', null, h('li', { class: 'muted', text: '불러오는 중…' }));
+    document.getElementById('widgets').append(h('article', { class: 'widget glass rise' },
+      h('h2', null, h('a', { href: d.app, style: 'color:inherit;text-decoration:none', text: d.title })), ul));
+    d.load().then(function (items) { ul.replaceChildren.apply(ul, items.length ? items : [h('li', { class: 'muted', text: '내용이 없습니다.' })]); },
+      function () { ul.replaceChildren(h('li', { class: 'muted', text: '불러오지 못했습니다.' })); });
+  });
+})();
+</script>
+</body>
+</html>
