@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IAS · IAS</title>
+<link rel="icon" href="data:,">
+<script src="js/theme.js"></script>
+<link rel="stylesheet" href="css/ias.css">
+</head>
+<body>
+<script src="js/core.js"></script>
+<script src="js/backend-local.js"></script>
+<script src="js/backend-http.js"></script>
+<script>
+IAS.api.me().then(function () { location.replace('home.html'); }, function () { location.replace('../index.html'); });
+</script>
+<noscript>JavaScript가 필요합니다.</noscript>
+</body>
+</html>

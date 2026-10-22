@@ -13,8 +13,9 @@ form.addEventListener('submit', (e) => {
   if (id === VALID_ID && pw === VALID_PW) {
     errorEl.textContent = '';
     sessionStorage.setItem('loggedIn', 'true');
-    alert('로그인 성공!');
-    // TODO: 로그인 후 이동할 페이지 연결
+    // 홈화면(ias)이 쓰는 세션을 데모 관리자 계정으로 맞춘다
+    try { localStorage.setItem('ias.session', 'admin'); } catch (e) {}
+    location.href = 'ias/home.html';
   } else {
     errorEl.textContent = '아이디 또는 비밀번호가 올바르지 않습니다.';
   }
